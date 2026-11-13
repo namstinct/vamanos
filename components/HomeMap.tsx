@@ -33,7 +33,7 @@ export default function HomeMap({ activities, userLocation, onPinPress, onMapPre
                 latitudeDelta: 0.05,
                 longitudeDelta: 0.05,
             }}
-            userInterfaceStyle="light"
+            userInterfaceStyle="dark"
             showsUserLocation={true}
             showsCompass={false}
             showsMyLocationButton={false}
@@ -63,12 +63,12 @@ export default function HomeMap({ activities, userLocation, onPinPress, onMapPre
 
 const styles = StyleSheet.create({
     mapPin: {
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.card,
         borderRadius: 20,
         padding: 8,
         ...Shadows.medium,
         borderWidth: 2,
-        borderColor: Colors.white,
+        borderColor: Colors.ink,
     },
     mapPinEmoji: {
         fontSize: 18,
