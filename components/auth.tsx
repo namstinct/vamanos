@@ -1,311 +1,121 @@
-import { Button, Input } from '@rneui/themed';
-import { BlurView } from 'expo-blur';
-import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
-import { Alert, Dimensions, Platform, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { Colors, Radius, Shadows, Spacing, Typography } from '../constants/theme';
-import { supabase } from '../lib/supabase';
-import HomeMap from './HomeMap';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Colors, Radius, Shadows, Typography } from '../constants/theme';
+import { supabase, supabaseConfigured } from '../lib/supabase';
+import { submitWaitlistEmail } from '../lib/waitlist';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+interface AuthProps { onSuccess?: () => void; }
 
-interface AuthProps {
-  onSuccess?: () => void;
+/** Examples are illustrative, not live activity or adoption claims. */
+function PlanPreview() {
+  return <View style={styles.preview} accessibilityLabel="Illustrative activity preview">
+    <View style={styles.previewHeader}><Text style={styles.previewTitle}>A little plan. A real connection.</Text><Text style={styles.previewLabel}>ILLUSTRATIVE PREVIEW</Text></View>
+    <View style={styles.map}>
+      <View style={[styles.street, { top: 55, transform: [{ rotate: '-24deg' }] }]} />
+      <View style={[styles.street, { top: 180, transform: [{ rotate: '18deg' }] }]} />
+      <View style={[styles.street, { top: 130, transform: [{ rotate: '75deg' }] }]} />
+      <View style={styles.park}><Text style={styles.parkText}>GET OUT THERE</Text></View>
+      <View style={[styles.pin, { left: '23%', top: 55 }]}><Text style={styles.pinNum}>01</Text></View>
+      <View style={[styles.pin, { right: '22%', top: 165 }]}><Text style={styles.pinNum}>02</Text></View>
+      <View style={[styles.pin, styles.pinHot, { left: '52%', top: 120 }]}><Text style={[styles.pinNum, { color: Colors.card }]}>03</Text></View>
+    </View>
+    <View style={styles.plan}><Text style={styles.planNumber}>01</Text><View style={{ flex: 1 }}><Text style={styles.planName}>A walk before sunset</Text><Text style={styles.planMeta}>Outside · A change of scenery</Text></View><View style={styles.goBadge}><Text style={styles.goBadgeText}>GO</Text></View></View>
+    <View style={styles.plan}><Text style={styles.planNumber}>02</Text><View style={{ flex: 1 }}><Text style={styles.planName}>Coffee, no occasion</Text><Text style={styles.planMeta}>A familiar spot · Good company</Text></View><View style={styles.goBadge}><Text style={styles.goBadgeText}>GO</Text></View></View>
+  </View>;
 }
 
 export default function Auth({ onSuccess }: AuthProps) {
+  const { width } = useWindowDimensions();
+  const wide = width >= 900;
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [joined, setJoined] = useState(false);
-  // Start with a high realistic number for social proof
-  const [waitlistCount, setWaitlistCount] = useState(1248);
+  const [error, setError] = useState('');
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
-  const handleJoinWaitlist = async () => {
-    if (!email || !email.includes('@')) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address.');
-      return;
-    }
-
-    setLoading(true);
-    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
+  async function handleJoinWaitlist() {
+    if (loading) return;
+    if (!valid) { setError('Enter a valid email address.'); return; }
+    setLoading(true); setError('');
     try {
-      // 1. Store in Supabase 'waitlist' table
-      const { error: dbError } = await supabase
-        .from('waitlist')
-        .insert([{ email }]);
-
-      if (dbError && dbError.code !== '23505') { // Ignore unique constraint (already joined)
-        console.warn('DB storage error:', dbError);
-      }
-
-      /**
-       * "Anonymous" Email Integration via FormSubmit
-       * This sends a POST request that triggers an email notification to the user's HOTMAIL.
-       */
-      const response = await fetch('https://formsubmit.co/ajax/Namkhangnle@hotmail.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          email: email,
-          message: `New signup for Vámonos Waitlist!`,
-          _subject: '🔥 New Vámonos Signup'
-        })
+      // Only a confirmed result counts; FormSubmit fallback disclosed in privacy copy.
+      await submitWaitlistEmail(email, {
+        supabase: supabaseConfigured ? supabase : null,
+        fetchImpl: fetch,
+        formsubmitUrl: 'https://formsubmit.co/ajax/Namkhangnle@hotmail.com',
       });
-
-      if (response.ok || (dbError && dbError.code === '23505')) {
-        setJoined(true);
-        setWaitlistCount(prev => prev + 1);
-        if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-        // Short delay for the "Success" animation before entering the app
-        setTimeout(() => {
-          if (onSuccess) onSuccess();
-        }, 1500);
-      } else {
-        throw new Error('Failed to join');
-      }
-    } catch (error: any) {
-      console.warn('Waitlist notification error:', error);
-      // Graceful fallback: let them in anyway so we don't block conversion
       setJoined(true);
-      setTimeout(() => {
-        if (onSuccess) onSuccess();
-      }, 1500);
-    } finally {
-      setLoading(false);
-    }
-  };
+    } catch {
+      setError("We couldn't confirm your signup. Please try again. You haven't been added yet.");
+    } finally { setLoading(false); }
+  }
 
-  return (
-    <View style={styles.container}>
-      {/* Background: The Live Map blurred - giving a tease of the product */}
-      <View style={styles.mapBackground}>
-        <HomeMap
-          activities={[]}
-          userLocation={{ latitude: 34.020, longitude: -118.495 }}
-          onPinPress={() => { }}
-          onMapPress={() => { }}
-        />
-        <BlurView
-          intensity={Platform.OS === 'ios' ? 70 : 95}
-          style={StyleSheet.absoluteFill}
-          tint="light"
-        />
-      </View>
-
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
-          <View style={styles.card}>
-            <View style={styles.header}>
-              <Text style={styles.emoji}>🚀</Text>
-              <Text style={styles.title}>Vámonos</Text>
-              <Text style={styles.tagline}>Spontaneous activities with friends.</Text>
+  return <ScrollView style={styles.page} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+    <View style={styles.shell}>
+      <View style={styles.nav}><Text style={styles.brand}>vámonos<Text style={styles.brandDot}>!</Text></Text><Text style={styles.navNote}>YOUR THIRD PLACE</Text></View>
+      <View style={[styles.hero, wide && styles.heroWide]}>
+        <View style={[styles.copy, wide && styles.copyWide]}>
+          <View style={styles.eyebrowRow}><View style={styles.dot} /><Text style={styles.eyebrow}>LESS SCROLLING. MORE LIVING.</Text></View>
+          <Text accessibilityRole="header" style={[styles.title, !wide && styles.titleMobile]}>Less group chat.{"\n"}More <Text style={styles.titleAccent}>going out.</Text></Text>
+          <Text style={styles.lede}>Spontaneous activities with friends. A map for finding a plan, and a reason to leave the house.</Text>
+          {joined ? <View style={styles.form} accessibilityLiveRegion="polite">
+            <Text style={styles.formTitle}>You're on the list.</Text>
+            <Text style={styles.formCopy}>Thanks for being early. You're ready to explore the map.</Text>
+            <Pressable accessibilityRole="button" style={styles.button} onPress={onSuccess}><Text style={styles.buttonText}>Explore the map ↗</Text></Pressable>
+          </View> : <View style={styles.form}>
+            <Text style={styles.formTitle}>Be part of the first plans.</Text>
+            <Text style={styles.formCopy}>Join the waitlist for early access.</Text>
+            <Text style={styles.inputLabel}>Email address</Text>
+            <View style={[styles.formRow, !wide && styles.formRowMobile]}>
+              <TextInput accessibilityLabel="Email address" placeholder="you@example.com" placeholderTextColor={Colors.textTertiary} value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" style={styles.input} onSubmitEditing={handleJoinWaitlist} />
+              <Pressable accessibilityRole="button" accessibilityState={{ disabled: loading }} disabled={loading} style={[styles.button, loading && styles.disabled]} onPress={handleJoinWaitlist}>{loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Join the waitlist ↗</Text>}</Pressable>
             </View>
-
-            {joined ? (
-              <View style={styles.successState}>
-                <Text style={styles.successEmoji}>🎉</Text>
-                <Text style={styles.successTitle}>You're on the list!</Text>
-                <Text style={styles.successSubtitle}>
-                  Redirecting you to the map...
-                </Text>
-                <View style={styles.statsContainer}>
-                  <Text style={styles.statsCount}>{waitlistCount.toLocaleString()}</Text>
-                  <Text style={styles.statsLabel}>Friends currently in line</Text>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.form}>
-                <Text style={styles.pitch}>
-                  The map-first social app for real-life plans. Join the waitlist for early access.
-                </Text>
-
-                <View style={styles.inputWrapper}>
-                  <Input
-                    placeholder="Enter your email"
-                    onChangeText={(text) => setEmail(text)}
-                    value={email}
-                    autoCapitalize={'none'}
-                    autoComplete="email"
-                    keyboardType="email-address"
-                    containerStyle={styles.inputContainerStyle}
-                    inputContainerStyle={styles.inputFieldContainer}
-                    inputStyle={styles.inputText}
-                    placeholderTextColor={Colors.textTertiary}
-                  />
-                </View>
-
-                <Button
-                  title="Join the Waitlist"
-                  loading={loading}
-                  disabled={loading || !email}
-                  onPress={handleJoinWaitlist}
-                  buttonStyle={styles.primaryButton}
-                  titleStyle={styles.buttonTitle}
-                  containerStyle={styles.buttonContainer}
-                />
-
-                <View style={styles.footer}>
-                  <Text style={styles.footerDisclaimer}>
-                    We value your privacy. No spam, ever.
-                  </Text>
-                </View>
-              </View>
-            )}
-          </View>
+            {error ? <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{error}</Text> : null}
+            <Text style={styles.privacy}>Your email is used for the waitlist. Signup may be processed by FormSubmit if our database is unavailable.</Text>
+          </View>}
         </View>
-      </SafeAreaView>
+        <View style={[styles.visual, wide && styles.visualWide]}><PlanPreview /></View>
+      </View>
+      <View style={[styles.principles, !wide && styles.principlesMobile]}>
+        {[
+          ['01', 'Find a plan', 'See activities on a map, not buried in a message thread.'],
+          ['02', 'Make it happen', 'Pick something to do. Give your next hangout a place to start.'],
+          ['03', 'Bring your people', 'Because the best third place is the one you share.'],
+        ].map(([n, title, body]) => <View style={styles.principle} key={n}><Text style={styles.principleNumber}>{n}</Text><Text style={styles.principleTitle}>{title}</Text><Text style={styles.principleBody}>{body}</Text></View>)}
+      </View>
+      <View style={styles.footer}><Text style={styles.footerBrand}>vámonos!</Text><Text style={styles.footerText}>Plans worth putting your phone down for.</Text></View>
     </View>
-  );
+  </ScrollView>;
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
-  mapBackground: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: SCREEN_HEIGHT * 0.05,
-  },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-    borderRadius: Radius.xxl,
-    padding: Spacing.xxl,
-    ...Platform.select({
-      ios: Shadows.large,
-      android: Shadows.medium,
-      web: { shadowColor: '#000', shadowOffset: { width: 0, height: 20 }, shadowOpacity: 0.1, shadowRadius: 40 }
-    }),
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  emoji: {
-    fontSize: 54,
-    marginBottom: Spacing.sm,
-  },
-  title: {
-    ...Typography.largeTitle,
-    color: Colors.text,
-    fontSize: 42,
-    letterSpacing: -1.5,
-    marginBottom: 4,
-  },
-  tagline: {
-    ...Typography.headline,
-    color: Colors.primary,
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  form: {
-    gap: Spacing.sm,
-  },
-  pitch: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.lg,
-    lineHeight: 24,
-  },
-  inputWrapper: {
-    marginBottom: -Spacing.sm,
-  },
-  inputContainerStyle: {
-    paddingHorizontal: 0,
-  },
-  inputFieldContainer: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.lg,
-    borderWidth: 1.5,
-    borderColor: '#EFEFEF',
-    borderBottomWidth: 1.5,
-    paddingHorizontal: Spacing.md,
-    height: 60,
-  },
-  inputText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  buttonContainer: {
-    marginTop: Spacing.sm,
-    borderRadius: Radius.full,
-    overflow: 'hidden',
-  },
-  primaryButton: {
-    backgroundColor: Colors.black,
-    height: 62,
-    borderRadius: Radius.full,
-  },
-  buttonTitle: {
-    fontWeight: '700',
-    fontSize: 18,
-    color: Colors.white,
-  },
-  footer: {
-    marginTop: Spacing.lg,
-    alignItems: 'center',
-  },
-  footerDisclaimer: {
-    ...Typography.footnote,
-    color: Colors.textTertiary,
-    fontSize: 13,
-  },
-  successState: {
-    alignItems: 'center',
-    paddingVertical: Spacing.lg,
-  },
-  successEmoji: {
-    fontSize: 64,
-    marginBottom: Spacing.md,
-  },
-  successTitle: {
-    ...Typography.title1,
-    color: Colors.text,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  successSubtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
-    paddingHorizontal: Spacing.md,
-  },
-  statsContainer: {
-    backgroundColor: Colors.primary + '10',
-    padding: Spacing.xl,
-    borderRadius: Radius.xl,
-    alignItems: 'center',
-    width: '100%',
-  },
-  statsCount: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  statsLabel: {
-    ...Typography.caption1,
-    color: Colors.primary,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-  },
+  page: { flex: 1, backgroundColor: Colors.paper }, scroll: { flexGrow: 1 },
+  shell: { width: '100%', maxWidth: 1280, alignSelf: 'center', paddingHorizontal: 28 },
+  nav: { height: 96, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 2, borderBottomColor: Colors.ink },
+  brand: { ...Typography.largeTitle, fontSize: 30, color: Colors.ink, letterSpacing: -1.2 }, brandDot: { color: Colors.primary },
+  navNote: { ...Typography.eyebrow, color: Colors.inkSoft },
+  hero: { paddingVertical: 48, gap: 44 }, heroWide: { flexDirection: 'row', alignItems: 'center', paddingVertical: 84, gap: 64 },
+  copy: { flex: 1 }, copyWide: { flex: 1.15 },
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 26 }, dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
+  eyebrow: { ...Typography.eyebrow, color: Colors.inkSoft },
+  title: { ...Typography.display, fontSize: 64, lineHeight: 62, color: Colors.ink }, titleMobile: { fontSize: 42, lineHeight: 42 },
+  titleAccent: { color: Colors.primary },
+  lede: { ...Typography.body, fontSize: 18, lineHeight: 28, color: Colors.inkSoft, marginTop: 24, maxWidth: 480 },
+  form: { marginTop: 34 }, formTitle: { ...Typography.title3, color: Colors.ink }, formCopy: { ...Typography.subhead, color: Colors.inkSoft, marginTop: 6, marginBottom: 20 },
+  inputLabel: { ...Typography.eyebrow, fontSize: 10, color: Colors.inkSoft, marginBottom: 8 }, formRow: { flexDirection: 'row', gap: 10 }, formRowMobile: { flexDirection: 'column' },
+  input: { flex: 1, minHeight: 54, minWidth: 0, borderWidth: 2, borderColor: Colors.ink, borderRadius: Radius.md, backgroundColor: Colors.card, paddingHorizontal: 16, fontSize: 15, color: Colors.ink, fontFamily: 'Archivo_500Medium' },
+  button: { minHeight: 54, backgroundColor: Colors.primary, borderRadius: Radius.md, borderWidth: 2, borderColor: Colors.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 22, ...Shadows.medium }, buttonText: { color: Colors.card, fontFamily: 'Archivo_800ExtraBold', fontSize: 14, letterSpacing: 0.3 }, disabled: { opacity: 0.6 },
+  privacy: { ...Typography.caption1, fontFamily: 'Archivo_400Regular', lineHeight: 17, color: Colors.inkSoft, marginTop: 12, maxWidth: 460 }, error: { color: Colors.danger, lineHeight: 20, fontSize: 13, marginTop: 12, fontFamily: 'Archivo_600SemiBold' },
+  visual: { flex: 1 }, visualWide: { flex: 1 },
+  preview: { borderWidth: 2, borderColor: Colors.ink, backgroundColor: Colors.card, borderRadius: Radius.xl, overflow: 'hidden', ...Shadows.large },
+  previewHeader: { padding: 22, gap: 8 }, previewTitle: { ...Typography.title3, color: Colors.ink }, previewLabel: { ...Typography.eyebrow, fontSize: 8, color: Colors.textTertiary },
+  map: { height: 270, backgroundColor: Colors.ink, overflow: 'hidden', position: 'relative', borderTopWidth: 2, borderTopColor: Colors.ink },
+  street: { position: 'absolute', height: 22, width: '150%', backgroundColor: '#3A2E24', left: '-25%' },
+  park: { position: 'absolute', top: 80, right: 30, width: 130, height: 95, borderRadius: 30, backgroundColor: Colors.butter, transform: [{ rotate: '-20deg' }], alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: Colors.ink }, parkText: { color: Colors.ink, fontSize: 9, letterSpacing: 1.5, fontFamily: 'Archivo_800ExtraBold' },
+  pin: { position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.ink },
+  pinHot: { backgroundColor: Colors.primary }, pinNum: { fontSize: 12, fontFamily: 'Archivo_800ExtraBold', color: Colors.ink },
+  plan: { flexDirection: 'row', gap: 14, alignItems: 'center', borderTopWidth: 2, borderTopColor: Colors.ink, padding: 20 }, planNumber: { color: Colors.primary, ...Typography.eyebrow }, planName: { color: Colors.ink, ...Typography.headline, fontSize: 15 }, planMeta: { color: Colors.inkSoft, fontSize: 11, marginTop: 5, fontFamily: 'Archivo_500Medium' },
+  goBadge: { backgroundColor: Colors.butter, borderWidth: 2, borderColor: Colors.ink, borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 4 }, goBadgeText: { ...Typography.caption2, color: Colors.ink },
+  principles: { flexDirection: 'row', gap: 38, paddingVertical: 40, borderTopWidth: 2, borderTopColor: Colors.ink }, principlesMobile: { flexDirection: 'column', gap: 28 }, principle: { flex: 1 }, principleNumber: { color: Colors.primary, ...Typography.eyebrow, marginBottom: 14 }, principleTitle: { color: Colors.ink, ...Typography.title3 }, principleBody: { color: Colors.inkSoft, fontSize: 14, lineHeight: 23, marginTop: 10, maxWidth: 310, fontFamily: 'Archivo_400Regular' },
+  footer: { borderTopWidth: 2, borderTopColor: Colors.ink, paddingVertical: 28, gap: 8 }, footerBrand: { ...Typography.title3, letterSpacing: -0.6, color: Colors.ink }, footerText: { fontSize: 11, color: Colors.inkSoft, fontFamily: 'Archivo_500Medium' },
 });
