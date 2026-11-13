@@ -1,103 +1,127 @@
 /**
  * Vámonos Design System
- * Apple HIG-inspired tokens for a premium, cohesive UI
+ * "Golden-hour flyer" - warm cream paper, ink borders, hard sticker shadows,
+ * hot coral + butter accents, poster-weight type.
  */
 
 export const Colors = {
-  // Primary
-  primary: '#007AFF',
-  primaryLight: '#47A0FF',
-  primaryDark: '#0056CC',
+  ink: '#1C1410',
+  inkSoft: '#6E5F52',
 
-  // Neutrals (Apple System)
-  black: '#000000',
-  white: '#FFFFFF',
-  text: '#1C1C1E',
-  textSecondary: '#8E8E93',
-  textTertiary: '#AEAEB2',
+  // Surfaces
+  paper: '#F4EBDC',
+  card: '#FFFBF2',
+  background: '#F4EBDC',
+  backgroundElevated: '#FFFBF2',
+  backgroundTertiary: '#E9DEC8',
 
-  // Backgrounds
-  background: '#F2F2F7',
-  backgroundElevated: '#FFFFFF',
-  backgroundTertiary: '#E5E5EA',
+  // Brand
+  primary: '#FF4A2D',
+  accent: '#FF4A2D',
+  accentSoft: 'rgba(255, 74, 45, 0.12)',
+  butter: '#FFC53D',
 
   // Semantic
-  success: '#34C759',
+  success: '#1F9D55',
   warning: '#FF9500',
-  danger: '#FF3B30',
-  info: '#5AC8FA',
+  danger: '#E63B25',
+  info: '#4A90D9',
 
-  // Accent (for highlights, badges, CTAs)
-  accent: '#FF6B2C',
-  accentSoft: 'rgba(255, 107, 44, 0.12)',
+  // Text
+  text: '#1C1410',
+  textSecondary: '#6E5F52',
+  textTertiary: '#A89885',
 
-  // Separators
-  separator: '#C6C6C8',
-  separatorLight: 'rgba(60, 60, 67, 0.06)',
+  // Lines
+  separator: 'rgba(28, 20, 16, 0.18)',
+  separatorLight: 'rgba(28, 20, 16, 0.08)',
+  border: '#1C1410',
 
   // Overlays
-  overlay: 'rgba(0, 0, 0, 0.4)',
-  sheetBackground: 'rgba(255, 255, 255, 0.97)',
+  overlay: 'rgba(28, 20, 16, 0.5)',
+  sheetBackground: 'rgba(255, 251, 242, 0.98)',
 
-  // Tab bar
-  tabActive: '#007AFF',
-  tabInactive: '#8E8E93',
+  // Tab bar (dark ink bar)
+  tabBar: '#1C1410',
+  tabActive: '#FFC53D',
+  tabInactive: 'rgba(255, 251, 242, 0.5)',
+
+  white: '#FFFFFF',
 } as const;
 
+// Warm, sticker-like palette for avatars and friend pins
+export const FriendColors = ['#FF4A2D', '#FF9F1C', '#2EC4A6', '#5E60CE', '#F72585', '#4A90D9'] as const;
+
+export const EMOJI_FONT = 'NotoColorEmoji_400Regular';
+export const withEmoji = (fam: string) => fam + ', NotoColorEmoji_400Regular';
+
+const DISPLAY = 'Archivo_900Black';
+const HEAVY = 'Archivo_800ExtraBold';
+const BOLD = 'Archivo_700Bold';
+const SEMI = 'Archivo_600SemiBold';
+const MED = 'Archivo_500Medium';
+const REG = 'Archivo_400Regular';
+
 export const Typography = {
+  display: {
+    fontFamily: DISPLAY,
+    fontSize: 40,
+    letterSpacing: -1,
+  },
   largeTitle: {
-    fontSize: 34,
-    fontWeight: '800' as const,
-    letterSpacing: 0.37,
+    fontFamily: DISPLAY,
+    fontSize: 32,
+    letterSpacing: -0.5,
   },
   title1: {
-    fontSize: 28,
-    fontWeight: '700' as const,
-    letterSpacing: 0.36,
+    fontFamily: HEAVY,
+    fontSize: 27,
+    letterSpacing: -0.4,
   },
   title2: {
+    fontFamily: HEAVY,
     fontSize: 22,
-    fontWeight: '700' as const,
-    letterSpacing: -0.26,
+    letterSpacing: -0.3,
   },
   title3: {
-    fontSize: 20,
-    fontWeight: '600' as const,
-    letterSpacing: -0.45,
+    fontFamily: BOLD,
+    fontSize: 19,
+    letterSpacing: -0.2,
   },
   headline: {
+    fontFamily: BOLD,
     fontSize: 17,
-    fontWeight: '600' as const,
-    letterSpacing: -0.41,
   },
   body: {
-    fontSize: 17,
-    fontWeight: '400' as const,
-    letterSpacing: -0.41,
+    fontFamily: REG,
+    fontSize: 16,
   },
   callout: {
-    fontSize: 16,
-    fontWeight: '400' as const,
-    letterSpacing: -0.32,
+    fontFamily: MED,
+    fontSize: 15,
   },
   subhead: {
-    fontSize: 15,
-    fontWeight: '400' as const,
-    letterSpacing: -0.24,
+    fontFamily: MED,
+    fontSize: 14,
   },
   footnote: {
+    fontFamily: SEMI,
     fontSize: 13,
-    fontWeight: '400' as const,
-    letterSpacing: -0.08,
   },
   caption1: {
+    fontFamily: SEMI,
     fontSize: 12,
-    fontWeight: '400' as const,
   },
   caption2: {
+    fontFamily: BOLD,
     fontSize: 11,
-    fontWeight: '400' as const,
-    letterSpacing: 0.07,
+    letterSpacing: 0.4,
+  },
+  eyebrow: {
+    fontFamily: BOLD,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase' as const,
   },
 } as const;
 
@@ -114,42 +138,33 @@ export const Spacing = {
 } as const;
 
 export const Radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 22,
+  xxl: 28,
   pill: 100,
   full: 9999,
 } as const;
 
+// Hard "sticker" shadows - offset ink, no blur
+const hard = (x: number, y: number) => ({
+  shadowColor: Colors.ink,
+  shadowOffset: { width: x, height: y },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: Math.max(x, y),
+});
+
 export const Shadows = {
-  small: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
-  },
-  medium: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  large: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 8,
-  },
+  small: hard(2, 2),
+  medium: hard(3, 3),
+  large: hard(5, 5),
   sheet: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
+    shadowColor: Colors.ink,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
     elevation: 16,
   },
 } as const;
