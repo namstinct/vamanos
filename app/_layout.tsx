@@ -1,8 +1,23 @@
+import {
+  Archivo_400Regular,
+  Archivo_500Medium,
+  Archivo_600SemiBold,
+  Archivo_700Bold,
+  Archivo_800ExtraBold,
+  Archivo_900Black,
+  useFonts,
+} from '@expo-google-fonts/archivo';
+import { NotoColorEmoji_400Regular } from '@expo-google-fonts/noto-color-emoji';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '@supabase/supabase-js';
+import * as SplashScreen from 'expo-splash-screen';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
+import { Colors } from '../constants/theme';
 import { supabase } from '../lib/supabase';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
@@ -10,6 +25,20 @@ export default function RootLayout() {
   const [initialized, setInitialized] = useState(false);
   const segments = useSegments();
   const router = useRouter();
+
+  const [fontsLoaded] = useFonts({
+    Archivo_400Regular,
+    Archivo_500Medium,
+    Archivo_600SemiBold,
+    Archivo_700Bold,
+    Archivo_800ExtraBold,
+    Archivo_900Black,
+    NotoColorEmoji_400Regular,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) SplashScreen.hideAsync();
+  }, [fontsLoaded]);
 
   // Initial setup: Load session and initial bypass status
   useEffect(() => {
@@ -40,7 +69,7 @@ export default function RootLayout() {
 
   // Navigation Guard logic
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || !fontsLoaded) return;
 
     async function evaluateNavigation() {
       // Re-verify bypass status in case it was just set in Another screen
@@ -65,13 +94,17 @@ export default function RootLayout() {
     }
 
     evaluateNavigation();
-  }, [session, isBypassed, initialized, segments]);
+  }, [session, isBypassed, initialized, segments, fontsLoaded]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="auth" options={{ presentation: 'fullScreenModal' }} />
-      <Stack.Screen name="+not-found" />
-    </Stack>
+    <View style={{ flex: 1, backgroundColor: Colors.ink, alignItems: 'center' }}>
+      <View style={{ flex: 1, width: '100%', maxWidth: Platform.OS === 'web' && segments[0] !== 'auth' ? 560 : undefined }}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="auth" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+      </View>
+    </View>
   );
 }
