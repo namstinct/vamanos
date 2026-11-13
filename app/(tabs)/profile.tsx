@@ -12,7 +12,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Radius, Shadows, Spacing, Typography } from '../../constants/theme';
+import { Colors, Radius, Shadows, Spacing, Typography, withEmoji } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
 
 const DUMMY_STATS = { activities: 12, crews: 3, amigos: 24 };
@@ -81,6 +81,7 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Stats strip */}
+                {session?.user ? (
                 <View style={styles.statsCard}>
                     <View style={styles.statItem}>
                         <Text style={styles.statValue}>{DUMMY_STATS.activities}</Text>
@@ -97,6 +98,16 @@ export default function ProfileScreen() {
                         <Text style={styles.statLabel}>Amigos</Text>
                     </View>
                 </View>
+                ) : (
+                <View style={styles.statsCard}>
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                        <Text style={styles.guestText}>You are browsing as a guest. Sign in to track your activities, crews and amigos.</Text>
+                        <TouchableOpacity style={styles.signInBtn} onPress={() => router.push('/auth' as any)} activeOpacity={0.85}>
+                            <Text style={styles.signInBtnText}>Sign in</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+                )}
 
                 {/* Settings */}
                 <View style={styles.section}>
@@ -123,6 +134,7 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Sign out */}
+                {session?.user && (
                 <View style={styles.section}>
                     <TouchableOpacity
                         style={styles.signOutBtn}
@@ -133,6 +145,7 @@ export default function ProfileScreen() {
                         <Text style={styles.signOutText}>Sign Out</Text>
                     </TouchableOpacity>
                 </View>
+                )}
 
                 {/* Version */}
                 <Text style={styles.version}>Vámonos v1.0 · Made with ❤️ for the spontaneous</Text>
@@ -303,11 +316,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: Spacing.sm,
-        backgroundColor: Colors.backgroundElevated,
+        backgroundColor: Colors.card,
         borderRadius: Radius.xl,
         paddingVertical: Spacing.lg,
-        borderWidth: 1,
-        borderColor: 'rgba(255,59,48,0.2)',
+        borderWidth: 2,
+        borderColor: Colors.ink,
         ...Shadows.small,
     },
     signOutText: {
@@ -316,6 +329,27 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
 
+    guestText: {
+        ...Typography.subhead,
+        color: Colors.textSecondary,
+        textAlign: 'center',
+        lineHeight: 20,
+    },
+    signInBtn: {
+        marginTop: Spacing.md,
+        backgroundColor: Colors.primary,
+        borderRadius: Radius.pill,
+        borderWidth: 2,
+        borderColor: Colors.ink,
+        paddingHorizontal: 24,
+        paddingVertical: 10,
+        ...Shadows.small,
+    },
+    signInBtnText: {
+        color: Colors.card,
+        fontFamily: 'Archivo_800ExtraBold',
+        fontSize: 14,
+    },
     version: {
         ...Typography.caption1,
         color: Colors.textTertiary,
