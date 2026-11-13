@@ -16,9 +16,10 @@ export default function AuthScreen() {
       setSession(session);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   const handleWaitlistSuccess = async () => {
