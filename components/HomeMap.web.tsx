@@ -17,11 +17,10 @@ const createEmojiIcon = (emoji: string) => {
         className: 'custom-leaflet-icon',
         html: `
       <div style="
-        background: white;
+        background: #FFFBF2;
         border-radius: 20px;
-        padding: 6px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        border: 2px solid white;
+        box-shadow: 3px 3px 0 #1C1410;
+        border: 2px solid #1C1410;
         text-align: center;
         width: 38px;
         height: 38px;
@@ -29,6 +28,7 @@ const createEmojiIcon = (emoji: string) => {
         align-items: center;
         justify-content: center;
         font-size: 18px;
+        font-family: 'NotoColorEmoji_400Regular';
       ">
         ${emoji || '📍'}
       </div>
@@ -43,10 +43,10 @@ const createUserDotIcon = () => {
         className: 'custom-leaflet-icon user-dot-icon',
         html: `
       <div style="
-        background: #007AFF;
+        background: #FF4A2D;
         border-radius: 12px;
-        border: 3px solid white;
-        box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+        border: 3px solid #FFFBF2;
+        box-shadow: 0 0 0 2px rgba(255, 74, 45, 0.4);
         width: 18px;
         height: 18px;
         margin-left: -9px;
@@ -68,8 +68,12 @@ export default function HomeMap({ activities, userLocation, onPinPress, onMapPre
         <View style={StyleSheet.absoluteFill}>
             {/* CSS to fix leaflet stacking issues in Expo web */}
             <style>{`
-        .leaflet-container { height: 100vh; width: 100vw; z-index: 1; }
+        .leaflet-container { height: 100vh; width: 100vw; z-index: 1; background: #1C1410; }
         .custom-leaflet-icon { background: none; border: none; }
+        .leaflet-tile-pane { filter: invert(0.92) hue-rotate(190deg) brightness(0.9) contrast(0.9) saturate(0.35); }
+        .leaflet-control-container .leaflet-bottom.leaflet-right { top: 104px !important; bottom: auto !important; left: 12px !important; right: auto !important; }
+        .leaflet-control-attribution { background: #FFF8EC !important; color: #1C1410 !important; border: 1.5px solid #1C1410 !important; border-radius: 6px; padding: 2px 8px !important; font-size: 11px !important; line-height: 1.4 !important; box-shadow: 2px 2px 0 #1C1410; }
+        .leaflet-control-attribution a { color: #E0381B !important; }
       `}</style>
 
             <MapContainer
@@ -82,7 +86,7 @@ export default function HomeMap({ activities, userLocation, onPinPress, onMapPre
             >
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
                 {activities.map((activity, idx) => {
