@@ -1,13 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { Tabs, useRouter } from 'expo-router';
-import { Platform, StyleSheet } from 'react-native';
+import { Tabs } from 'expo-router';
+import { Platform } from 'react-native';
 import { Colors } from '../../constants/theme';
 
 export default function TabLayout() {
-  const router = useRouter();
-
   return (
     <Tabs
       screenOptions={{
@@ -19,24 +16,18 @@ export default function TabLayout() {
           bottom: 0,
           left: 0,
           right: 0,
-          borderTopWidth: 0,
+          borderTopWidth: 2,
+          borderTopColor: Colors.ink,
           elevation: 0,
-          backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(255,255,255,0.95)',
-          height: Platform.OS === 'ios' ? 88 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
-          paddingTop: 8,
+          backgroundColor: Colors.tabBar,
+          height: Platform.OS === 'ios' ? 88 : 72,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+          paddingTop: 10,
         },
-        tabBarBackground: () =>
-          Platform.OS === 'ios' ? (
-            <BlurView
-              intensity={80}
-              tint="systemChromeMaterialLight"
-              style={StyleSheet.absoluteFill}
-            />
-          ) : null,
         tabBarLabelStyle: {
           fontSize: 10,
-          fontWeight: '600',
+          fontFamily: 'Archivo_700Bold',
+          letterSpacing: 0.6,
           marginTop: 2,
         },
       }}
@@ -71,7 +62,7 @@ export default function TabLayout() {
         options={{
           title: 'Create',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name="add-circle" color={focused ? Colors.accent : color} size={32} />
+            <Ionicons name="add-circle" color={focused ? Colors.primary : color} size={32} />
           ),
         }}
       />
@@ -86,4 +77,4 @@ export default function TabLayout() {
       />
     </Tabs>
   );
-}
+                        }
