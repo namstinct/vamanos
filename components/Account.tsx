@@ -1,7 +1,7 @@
-import { Button, Input } from '@rneui/themed'
 import { Session } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
-import { Alert, StyleSheet, View } from 'react-native'
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Colors, Radius, Shadows, Typography } from '../constants/theme'
 import { supabase } from '../lib/supabase'
 
 export default function Account({ session }: { session: Session }) {
@@ -80,53 +80,50 @@ export default function Account({ session }: { session: Session }) {
   return (
     <View style={styles.container}>
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Input
-          label="Email"
-          value={session?.user?.email}
-          disabled
-          inputContainerStyle={styles.inputContainer}
-          labelStyle={styles.label}
-          inputStyle={styles.inputText}
-        />
+        <Text style={styles.label}>Email</Text>
+        <View style={[styles.inputContainer, styles.inputDisabled]}>
+          <Text style={styles.disabledText}>{session?.user?.email}</Text>
+        </View>
       </View>
       <View style={styles.verticallySpaced}>
-        <Input
-          label="Username"
+        <Text style={styles.label}>Username</Text>
+        <TextInput
+          style={styles.inputContainer}
           value={username || ''}
           onChangeText={(text) => setUsername(text)}
-          inputContainerStyle={styles.inputContainer}
-          labelStyle={styles.label}
-          inputStyle={styles.inputText}
+          placeholderTextColor={Colors.textTertiary}
         />
       </View>
       <View style={styles.verticallySpaced}>
-        <Input
-          label="Website"
+        <Text style={styles.label}>Website</Text>
+        <TextInput
+          style={styles.inputContainer}
           value={website || ''}
           onChangeText={(text) => setWebsite(text)}
-          inputContainerStyle={styles.inputContainer}
-          labelStyle={styles.label}
-          inputStyle={styles.inputText}
+          placeholderTextColor={Colors.textTertiary}
+          autoCapitalize="none"
         />
       </View>
 
       <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title={loading ? 'Loading ...' : 'Update'}
+        <TouchableOpacity
+          style={[styles.primaryButton, loading && { opacity: 0.6 }]}
           onPress={() => updateProfile({ username, website, avatar_url: avatarUrl })}
           disabled={loading}
-          buttonStyle={styles.primaryButton}
-          titleStyle={styles.buttonTitle}
-        />
+          activeOpacity={0.85}
+        >
+          <Text style={styles.buttonTitle}>{loading ? 'Loading ...' : 'Update'}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.verticallySpaced}>
-        <Button
-          title="Sign Out"
+        <TouchableOpacity
+          style={styles.secondaryButton}
           onPress={() => supabase.auth.signOut()}
-          buttonStyle={styles.secondaryButton}
-          titleStyle={styles.secondaryButtonTitle}
-        />
+          activeOpacity={0.85}
+        >
+          <Text style={styles.secondaryButtonTitle}>Sign Out</Text>
+        </TouchableOpacity>
       </View>
     </View>
   )
@@ -134,9 +131,9 @@ export default function Account({ session }: { session: Session }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 40,
+    paddingTop: 40,
     padding: 24,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: Colors.paper,
     flex: 1,
   },
   verticallySpaced: {
@@ -147,45 +144,59 @@ const styles = StyleSheet.create({
   mt20: {
     marginTop: 20,
   },
-  inputContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
-    borderBottomWidth: 1,
-    paddingHorizontal: 16,
-    height: 56,
-  },
   label: {
-    color: '#8E8E93',
-    fontWeight: '600',
+    ...Typography.eyebrow,
+    color: Colors.textSecondary,
     marginBottom: 8,
     marginLeft: 4,
-    fontSize: 14,
   },
-  inputText: {
-    color: '#1C1C1E',
+  inputContainer: {
+    backgroundColor: Colors.card,
+    borderRadius: Radius.lg,
+    borderWidth: 2,
+    borderColor: Colors.ink,
+    paddingHorizontal: 16,
+    height: 56,
+    justifyContent: 'center',
+    color: Colors.ink,
     fontSize: 16,
+    fontFamily: 'Archivo_500Medium',
+  },
+  inputDisabled: {
+    backgroundColor: Colors.backgroundTertiary,
+  },
+  disabledText: {
+    color: Colors.textSecondary,
+    fontSize: 16,
+    fontFamily: 'Archivo_500Medium',
   },
   primaryButton: {
-    backgroundColor: '#000000',
-    borderRadius: 28,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.pill,
+    borderWidth: 2,
+    borderColor: Colors.ink,
     height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Shadows.medium,
   },
   secondaryButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 28,
+    backgroundColor: Colors.card,
+    borderRadius: Radius.pill,
+    borderWidth: 2,
+    borderColor: Colors.ink,
     height: 56,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonTitle: {
-    fontWeight: '700',
+    fontFamily: 'Archivo_800ExtraBold',
     fontSize: 16,
+    color: Colors.card,
   },
   secondaryButtonTitle: {
-    fontWeight: '700',
+    fontFamily: 'Archivo_800ExtraBold',
     fontSize: 16,
-    color: '#FF3B30', // Red for sign out
+    color: Colors.danger,
   },
 })
