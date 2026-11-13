@@ -13,7 +13,7 @@ import {
     View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActivityCategories, Colors, Radius, Shadows, Spacing, Typography } from '../../constants/theme';
+import { ActivityCategories, Colors, EMOJI_FONT, Radius, Shadows, Spacing, Typography, withEmoji } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
 
 const TIME_PRESETS = [
@@ -33,12 +33,14 @@ export default function CreateScreen() {
     const [selectedTime, setSelectedTime] = useState(0);
     const [threshold, setThreshold] = useState(4);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGuest, setIsGuest] = useState(true);
     const [userLocation, setUserLocation] = useState<{ latitude: number, longitude: number } | null>(null);
 
     const activeCategory = ActivityCategories.find(c => c.id === selectedCategory);
 
     useEffect(() => {
         getUserLocation();
+        supabase.auth.getSession().then(({ data }) => setIsGuest(!data.session)).catch(() => {});
     }, []);
 
     async function getUserLocation() {
@@ -113,7 +115,7 @@ export default function CreateScreen() {
                 <View style={{ width: 60 }} />
             </View>
 
-            <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 40 }]} showsVerticalScrollIndicator={false}>
+            <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 110 }]} showsVerticalScrollIndicator={false}>
 
                 {/* Title */}
                 <Text style={styles.label}>What are we doing?</Text>
@@ -213,7 +215,9 @@ export default function CreateScreen() {
                 </TouchableOpacity>
 
                 <Text style={styles.footerNote}>
-                    Your crew gets notified and confirms before it's locked in.
+                    {isGuest
+                        ? 'Guest mode: plans are not saved and nobody is notified. Sign in to create for real.'
+                        : 'Saves to your crew\u2019s list. No crew notifications are sent in this build.'}
                 </Text>
 
             </ScrollView>
@@ -224,7 +228,7 @@ export default function CreateScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.backgroundElevated,
+        backgroundColor: Colors.paper,
     },
     header: {
         flexDirection: 'row',
@@ -232,8 +236,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingHorizontal: Spacing.xl,
         paddingVertical: Spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.separatorLight,
+        borderBottomWidth: 2,
+        borderBottomColor: Colors.ink,
+        backgroundColor: Colors.card,
     },
     cancelBtn: { width: 60 },
     cancelText: {
@@ -264,18 +269,22 @@ const styles = StyleSheet.create({
     titleInputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
         borderRadius: Radius.xl,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         paddingHorizontal: Spacing.lg,
         gap: Spacing.sm,
         height: 60,
+        ...Shadows.small,
     },
-    titleEmoji: { fontSize: 24 },
+    titleEmoji: { fontSize: 24, fontFamily: EMOJI_FONT },
     titleInput: {
         flex: 1,
         ...Typography.headline,
         color: Colors.text,
-    },
+        outlineStyle: 'none',
+    } as any,
 
     // Category grid
     categoryGrid: {
@@ -287,24 +296,23 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 6,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
         paddingHorizontal: 14,
         paddingVertical: 9,
         borderRadius: Radius.pill,
         borderWidth: 2,
-        borderColor: 'transparent',
+        borderColor: Colors.ink,
     },
     catChipActive: {
-        backgroundColor: Colors.text,
-        borderColor: Colors.text,
+        backgroundColor: Colors.ink,
     },
-    catChipEmoji: { fontSize: 14 },
+    catChipEmoji: { fontSize: 14, fontFamily: EMOJI_FONT },
     catChipLabel: {
         ...Typography.footnote,
         fontWeight: '600',
         color: Colors.text,
     },
-    catChipLabelActive: { color: Colors.white },
+    catChipLabelActive: { color: Colors.card },
 
     // Time picker
     timeRow: {
@@ -316,20 +324,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: Radius.pill,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
         borderWidth: 2,
-        borderColor: 'transparent',
+        borderColor: Colors.ink,
     },
     timeChipActive: {
         backgroundColor: Colors.primary,
-        borderColor: Colors.primary,
     },
     timeChipLabel: {
         ...Typography.subhead,
         fontWeight: '600',
         color: Colors.text,
     },
-    timeChipLabelActive: { color: Colors.white },
+    timeChipLabelActive: { color: Colors.card },
 
     // Threshold stepper
     thresholdRow: {
@@ -341,7 +348,9 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         justifyContent: 'center',
         alignItems: 'center',
         ...Shadows.small,
@@ -363,8 +372,10 @@ const styles = StyleSheet.create({
 
     // CTA
     vamanosBtn: {
-        backgroundColor: Colors.text,
+        backgroundColor: Colors.primary,
         borderRadius: Radius.pill,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         height: 60,
         justifyContent: 'center',
         alignItems: 'center',
@@ -376,10 +387,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0,
     },
     vamonosBtnText: {
-        color: Colors.white,
+        color: Colors.card,
         fontSize: 18,
-        fontWeight: '800',
-        letterSpacing: -0.5,
+        fontFamily: withEmoji('Archivo_900Black'),
+        letterSpacing: 0.5,
     },
     footerNote: {
         ...Typography.footnote,
