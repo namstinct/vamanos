@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import * as Location from 'expo-location';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,10 +15,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ActivityMap from '../../components/ActivityMap';
-import { Colors, Radius, Shadows, Spacing, Typography } from '../../constants/theme';
+import { Colors, EMOJI_FONT, Radius, Shadows, Spacing, Typography, withEmoji } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
 
-const AVATAR_COLORS = ['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30', '#5AC8FA'];
+const AVATAR_COLORS = ['#FF4A2D', '#FF9F1C', '#2EC4A6', '#5E60CE', '#F72585', '#4A90D9'];
 function getColor(name: string) {
     let hash = 0;
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -128,7 +127,7 @@ export default function ActivityDetail() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                Alert.alert('Vámonos!', 'RSVP saved! (Sign in to sync)');
+                Alert.alert('Vámonos!', 'Saved for this session only - sign in to keep your RSVP.');
                 setMyStatus(status);
                 return;
             }
@@ -172,18 +171,18 @@ export default function ActivityDetail() {
                     style={[styles.backBtn, { top: insets.top + 12 }]}
                     onPress={() => router.back()}
                 >
-                    <BlurView intensity={70} tint="systemChromeMaterialLight" style={styles.backBtnBlur}>
+                    <View style={styles.backBtnSolid}>
                         <Ionicons name="chevron-back" size={20} color={Colors.text} />
-                    </BlurView>
+                    </View>
                 </TouchableOpacity>
 
                 {/* Share button */}
                 <TouchableOpacity
                     style={[styles.shareBtn, { top: insets.top + 12 }]}
                 >
-                    <BlurView intensity={70} tint="systemChromeMaterialLight" style={styles.backBtnBlur}>
+                    <View style={styles.backBtnSolid}>
                         <Ionicons name="share-outline" size={18} color={Colors.text} />
-                    </BlurView>
+                    </View>
                 </TouchableOpacity>
             </View>
 
@@ -203,6 +202,11 @@ export default function ActivityDetail() {
                         {isHype && (
                             <View style={styles.hypeFlag}>
                                 <Text style={styles.hypeFlagText}>🔥 ON</Text>
+                            </View>
+                        )}
+                        {activity.id?.toString().startsWith('dummy-') && (
+                            <View style={styles.sampleFlag}>
+                                <Text style={styles.sampleFlagText}>SAMPLE</Text>
                             </View>
                         )}
                     </View>
@@ -257,7 +261,7 @@ export default function ActivityDetail() {
                             onPress={() => handleRSVP('committed')}
                             activeOpacity={0.85}
                         >
-                            <Text style={styles.rsvpPrimaryText}>
+                            <Text style={[styles.rsvpPrimaryText, myStatus === 'committed' && { color: Colors.ink }]}>
                                 {myStatus === 'committed' ? '✓ I\'m In!' : 'I\'m Down! 🚀'}
                             </Text>
                         </TouchableOpacity>
@@ -301,7 +305,7 @@ export default function ActivityDetail() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.paper,
     },
     centered: {
         flex: 1,
@@ -333,8 +337,12 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         ...Shadows.medium,
     },
-    backBtnBlur: {
+    backBtnSolid: {
         flex: 1,
+        backgroundColor: Colors.card,
+        borderRadius: 19,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -342,9 +350,11 @@ const styles = StyleSheet.create({
     // Detail sheet
     detailSheet: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.paper,
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
+        borderTopWidth: 2,
+        borderColor: Colors.ink,
         marginTop: -28,
         paddingHorizontal: Spacing.xxl,
         paddingTop: Spacing.xxl,
@@ -362,11 +372,13 @@ const styles = StyleSheet.create({
         width: 52,
         height: 52,
         borderRadius: Radius.md,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    titleEmoji: { fontSize: 26 },
+    titleEmoji: { fontSize: 26, fontFamily: EMOJI_FONT },
     activityTitle: {
         ...Typography.title2,
         color: Colors.text,
@@ -379,25 +391,44 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     hypeFlag: {
-        backgroundColor: Colors.accent,
+        backgroundColor: Colors.butter,
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: Radius.pill,
+        borderWidth: 2,
+        borderColor: Colors.ink,
+    },
+    sampleFlag: {
+        backgroundColor: Colors.backgroundTertiary,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: Radius.pill,
+        borderWidth: 1.5,
+        borderColor: Colors.ink,
+    },
+    sampleFlagText: {
+        color: Colors.inkSoft,
+        fontSize: 10,
+        letterSpacing: 1,
+        fontFamily: 'Archivo_800ExtraBold',
     },
     hypeFlagText: {
-        color: Colors.white,
+        color: Colors.ink,
         fontSize: 12,
-        fontWeight: '800',
+        fontFamily: withEmoji('Archivo_800ExtraBold'),
     },
 
     // Stats
     statsRow: {
         flexDirection: 'row',
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
         borderRadius: Radius.xl,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         padding: Spacing.lg,
         marginBottom: Spacing.xl,
         alignItems: 'center',
+        ...Shadows.small,
     },
     statCard: {
         flex: 1,
@@ -434,23 +465,24 @@ const styles = StyleSheet.create({
     },
     progressLabel: {
         ...Typography.footnote,
+        fontFamily: withEmoji('Archivo_600SemiBold'),
         color: Colors.textSecondary,
-        fontWeight: '600',
     },
     progressPct: {
         ...Typography.footnote,
-        color: Colors.success,
-        fontWeight: '700',
+        color: Colors.primary,
     },
     progressBg: {
-        height: 8,
-        backgroundColor: Colors.background,
+        height: 10,
+        backgroundColor: Colors.backgroundTertiary,
         borderRadius: Radius.pill,
+        borderWidth: 1.5,
+        borderColor: Colors.ink,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: Colors.success,
+        backgroundColor: Colors.primary,
         borderRadius: Radius.pill,
     },
 
@@ -459,7 +491,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: Spacing.md,
-        backgroundColor: Colors.background,
+        backgroundColor: Colors.card,
+        borderWidth: 2,
+        borderColor: Colors.ink,
         padding: Spacing.md,
         borderRadius: Radius.lg,
         marginBottom: Spacing.xxl,
@@ -468,7 +502,9 @@ const styles = StyleSheet.create({
         width: 34,
         height: 34,
         borderRadius: Radius.sm,
-        backgroundColor: 'rgba(0,122,255,0.08)',
+        backgroundColor: Colors.butter,
+        borderWidth: 1.5,
+        borderColor: Colors.ink,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -494,28 +530,29 @@ const styles = StyleSheet.create({
     },
     rsvpPrimary: {
         flex: 2,
-        backgroundColor: Colors.text,
+        backgroundColor: Colors.primary,
+        borderWidth: 2,
+        borderColor: Colors.ink,
     },
     rsvpActive: {
-        backgroundColor: Colors.success,
+        backgroundColor: Colors.butter,
     },
     rsvpPrimaryText: {
-        color: Colors.white,
-        fontWeight: '800',
+        color: Colors.card,
+        fontFamily: withEmoji('Archivo_800ExtraBold'),
         fontSize: 17,
     },
     rsvpSecondary: {
-        backgroundColor: Colors.backgroundElevated,
-        borderWidth: 1.5,
-        borderColor: Colors.backgroundTertiary,
-        shadowOpacity: 0,
+        backgroundColor: Colors.card,
+        borderWidth: 2,
+        borderColor: Colors.ink,
     },
     rsvpSecondaryActive: {
-        borderColor: Colors.text,
+        backgroundColor: Colors.backgroundTertiary,
     },
     rsvpSecondaryText: {
-        color: Colors.textSecondary,
-        fontWeight: '700',
+        color: Colors.ink,
+        fontFamily: withEmoji('Archivo_700Bold'),
         fontSize: 16,
     },
 
