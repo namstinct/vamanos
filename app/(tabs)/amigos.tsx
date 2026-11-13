@@ -13,7 +13,7 @@ import {
   View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Radius, Shadows, Spacing, Typography } from '../../constants/theme';
+import { Colors, EMOJI_FONT, Radius, Shadows, Spacing, Typography } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
 
 const DUMMY_CREWS = [
@@ -34,7 +34,7 @@ const DUMMY_CREWS = [
   },
 ];
 
-const AVATAR_COLORS = ['#007AFF', '#34C759', '#FF9500', '#AF52DE', '#FF3B30', '#5AC8FA'];
+const AVATAR_COLORS = ['#FF4A2D', '#FF9F1C', '#2EC4A6', '#5E60CE', '#F72585', '#4A90D9'];
 
 function getColor(name: string) {
   let hash = 0;
@@ -150,7 +150,7 @@ export default function AmigosScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Amigos</Text>
-        <Text style={styles.headerSub}>Your crews</Text>
+        <Text style={styles.headerSub}>{crews.length > 0 && crews.every(c => c.id?.toString().startsWith('d')) ? 'Sample crews - sign in to sync your own' : 'Your crews'}</Text>
       </View>
 
       <FlatList
@@ -204,12 +204,12 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: Colors.backgroundElevated,
+    backgroundColor: Colors.card,
     paddingHorizontal: Spacing.xxl,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.separatorLight,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.ink,
   },
   headerTitle: {
     ...Typography.largeTitle,
@@ -237,19 +237,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     gap: Spacing.md,
     ...Shadows.small,
-    borderWidth: 1,
-    borderColor: Colors.separatorLight,
+    borderWidth: 2,
+    borderColor: Colors.ink,
   },
   crewLeft: {},
   crewIconBg: {
     width: 48,
     height: 48,
     borderRadius: Radius.md,
-    backgroundColor: 'rgba(0,122,255,0.08)',
+    backgroundColor: Colors.butter,
+    borderWidth: 2,
+    borderColor: Colors.ink,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  crewIcon: { fontSize: 24 },
+  crewIcon: { fontSize: 24, fontFamily: EMOJI_FONT },
   crewInfo: {
     flex: 1,
     gap: 6,
@@ -264,15 +266,16 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   memberBadge: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.butter,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: Radius.pill,
+    borderWidth: 1.5,
+    borderColor: Colors.ink,
   },
   memberBadgeText: {
     ...Typography.caption2,
-    color: Colors.textSecondary,
-    fontWeight: '700',
+    color: Colors.ink,
   },
 
   // Avatar stack
@@ -300,7 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 80,
   },
-  emptyEmoji: { fontSize: 56, marginBottom: Spacing.md },
+  emptyEmoji: { fontSize: 56, marginBottom: Spacing.md, fontFamily: EMOJI_FONT },
   emptyTitle: { ...Typography.title3, color: Colors.text, marginBottom: 4 },
   emptySub: { ...Typography.subhead, color: Colors.textSecondary },
 
@@ -315,25 +318,30 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
-    backgroundColor: Colors.backgroundElevated,
-    borderTopWidth: 1,
-    borderTopColor: Colors.separatorLight,
+    backgroundColor: Colors.card,
+    borderTopWidth: 2,
+    borderTopColor: Colors.ink,
     ...Shadows.sheet,
   },
   createInput: {
     flex: 1,
     height: 48,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.paper,
     borderRadius: Radius.pill,
+    borderWidth: 2,
+    borderColor: Colors.ink,
     paddingHorizontal: Spacing.lg,
     ...Typography.callout,
     color: Colors.text,
-  },
+    outlineStyle: 'none',
+  } as any,
   createBtn: {
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: Colors.primary,
+    borderWidth: 2,
+    borderColor: Colors.ink,
     justifyContent: 'center',
     alignItems: 'center',
     ...Shadows.medium,
